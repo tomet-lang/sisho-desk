@@ -1,0 +1,18 @@
+[package]
+name = "sisho-desk-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "TUI presentation and terminal driver for sisho-desk."
+publish = false
+
+[dependencies]
+sisho-desk-core = { workspace = true }
+tomet-config = { workspace = true }
+tree-sitter-tomet = { workspace = true }
+
+#= Crates.io
+anyhow = { workspace = true }
+crossterm = { workspace = true }
+ratatui = { workspace = true }
+tree-sitter = { workspace = true }

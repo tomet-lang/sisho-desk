@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use super::diff::generate_colored_diff;
-use crate::app::{App, FocusedPane, StructuralInputTarget};
+use sisho_desk_core::app::{App, FocusedPane, StructuralInputTarget};
 
 pub(super) fn render_structural_view(f: &mut Frame, app: &mut App, area: Rect) {
     let chunks = Layout::default()

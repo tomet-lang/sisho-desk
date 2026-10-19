@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use super::highlight::highlight_source_file;
-use crate::app::{App, FocusedPane};
+use sisho_desk_core::app::{App, FocusedPane};
 
 pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
     let chunks = Layout::default()

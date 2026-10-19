@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 
-use crate::app::{ActiveTab, App};
 use crate::ui;
+use sisho_desk_core::app::{ActiveTab, App};
 
 /// A vault in a fresh temporary place, removed when dropped.
 struct Vault(PathBuf);

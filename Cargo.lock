@@ -927,7 +927,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "sisho-desk-core",
+ "sisho-desk-tui",
 ]
 
 [[package]]
@@ -935,22 +935,27 @@ name = "sisho-desk-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "crossterm",
- "ratatui",
- "tomet-ast",
  "tomet-config",
  "tomet-indexer",
  "tomet-load-config",
  "tomet-markdown",
- "tomet-parser",
  "tomet-printer",
- "tomet-semantics",
  "tomet-transform",
- "tomet-tree",
  "tomet-workspace",
+ "uuid",
+]
+
+[[package]]
+name = "sisho-desk-tui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossterm",
+ "ratatui",
+ "sisho-desk-core",
+ "tomet-config",
  "tree-sitter",
  "tree-sitter-tomet",
- "uuid",
 ]
 
 [[package]]

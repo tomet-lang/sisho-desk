@@ -17,7 +17,7 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph, Tabs},
 };
 
-use crate::app::{ActiveTab, App, PendingConfirm};
+use sisho_desk_core::app::{ActiveTab, App, PendingConfirm};
 
 mod batch_meta;
 mod diff;

@@ -14,7 +14,8 @@ does not relax the rule to fit the change it wanted to make.
   guard: { twrit: layers }
 
   layers: {
-    1: list( "app" )
+    2: list( "app" )
+    1: list( "crates/sisho-desk-tui" )
     0: list( "crates/sisho-desk-core" )
   }
 }
@@ -23,7 +24,8 @@ Every workspace member belongs to exactly one layer, and depends only on
 layers strictly below its own. Same-layer dependencies are allowed;
 upward ones are not.
 
-Layer 0 holds the desk core (the engine and UI). Layer 1 is the CLI program.
+Layer 0 holds the desk core (the engine and state machine). Layer 1 holds
+the TUI presentation and terminal driver. Layer 2 is the CLI program.
 
 ==[ no-sisho-crates ]
 

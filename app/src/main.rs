@@ -28,7 +28,7 @@ struct Cli {
 fn main() -> ExitCode {
     let cli = Cli::parse();
 
-    match sisho_desk_core::run_tui(cli.path, cli.config) {
+    match sisho_desk_tui::run_tui(cli.path, cli.config) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("sisho-desk: {error}");

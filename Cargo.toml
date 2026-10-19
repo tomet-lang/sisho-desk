@@ -3,6 +3,7 @@ resolver = "3"
 members = [
   "app",
   "crates/sisho-desk-core",
+  "crates/sisho-desk-tui",
 ]
 
 default-members = ["app"]
@@ -15,6 +16,7 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 sisho-desk-core = { path = "crates/sisho-desk-core" }
+sisho-desk-tui = { path = "crates/sisho-desk-tui" }
 
 #= Tomet
 tomet-ast = { git = "https://github.com/tomet-lang/tomet.git" }
