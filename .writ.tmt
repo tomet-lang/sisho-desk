@@ -25,6 +25,20 @@ upward ones are not.
 
 Layer 0 holds the desk core (the engine and UI). Layer 1 is the CLI program.
 
+==[ no-sisho-crates ]
+
+@rule(no-sisho-crates){
+  guard: { twrit: door }
+
+  door: {
+    names: list( "sisho_run", "sisho_tools", "sisho_vault", "sisho_serve", "sisho_tui", "sisho_cli" )
+    allowed: list()
+  }
+}
+
+`sisho-desk` depends on no `sisho-*` crate. The extension knows the contract,
+not the orchestrator.
+
 ==[ tmtroot-output-not-edited ]
 
 @rule(tmtroot-output-not-edited){
