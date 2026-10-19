@@ -1,0 +1,58 @@
+@config(
+  export: {
+    type: commonmark,
+    path: "README.md"
+  }
+)
+@meta{
+  id: doc-readme,
+  lang: en
+}
+
+${macro.generated_by(self.path)}
+
+=[ Sisho Desk ]
+
+Interactive terminal desk for the Tomet ecosystem: look around the workspace, migrate Markdown, edit metadata in batches, and search and replace by structure.
+
+==[ Overview ]
+
+`sisho-desk` is the interactive desk for Tomet documents. It runs standalone as `sisho-desk`, or through the `sisho` orchestrator as `sisho desk`.
+
+It has four tabs:
+1. **Explorer**: browse the workspace file tree, view file contents, and edit files in-place or in `$EDITOR`.
+2. **Migration**: convert Markdown (`.md`) files to Tomet (`.tmt`) side-by-side with preview.
+3. **BatchMeta**: update `@meta` fields across multiple documents in batch.
+4. **StructuralGrep**: search and replace syntax elements and attributes structurally using `tomet-transform`.
+
+The full CLI specification is at @link(tmtroot/spec/cli/desk.tmt).
+
+==[ Usage ]
+
+```bash
+sisho-desk [path]              # open desk in path (defaults to ".")
+sisho-desk [path] -c <config>  # open with an explicit config file (.tmt)
+sisho desk [path]              # run through sisho as an extension
+```
+
+Exit codes:
+- `0`: normal exit (e.g. quit with `q`).
+- `1`: could not do what was asked (e.g. standard input is not a terminal, or error during operation).
+- `2`: usage error (invalid command-line arguments).
+
+==[ Workspace Layout ]
+
+-| @dir(app) (`sisho-desk`) -- Main CLI binary (`sisho-desk`).
+-| @dir(crates/sisho-desk-core) (`sisho-desk-core`) -- Core library holding the state engine and Ratatui terminal UI.
+
+==[ Building and Testing ]
+
+=== Build workspace
+```bash
+cargo build
+```
+
+=== Run tests
+```bash
+cargo test --workspace
+```
