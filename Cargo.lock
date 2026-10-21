@@ -980,6 +980,7 @@ dependencies = [
 [[package]]
 name = "sisho-sdk"
 version = "0.1.0"
+source = "git+https://github.com/tomet-lang/sisho.git#faccf75c6bfb37f8f6eef3a1b743493f5c1b99a9"
 dependencies = [
  "jobserver-gate",
  "serde",

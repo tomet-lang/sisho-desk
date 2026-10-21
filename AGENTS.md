@@ -47,14 +47,11 @@ The rules that follow:
 
 Read `CONTRIBUTING.md` for the contribution workflow, commit conventions, and verification steps.
 
-## Working against a local tomet
+## Changes in tomet or sisho
 
-The `tomet-*` crates are git dependencies, pinned by `Cargo.lock`. To try a change in the sibling `../tomet` checkout without a push, point the crates at it in `.cargo/config.toml`, which is gitignored:
+The `tomet-*` and `sisho-sdk` crates are git dependencies, pinned by `Cargo.lock`. A change in a sibling checkout reaches this repository by being pushed there, then taken with `cargo update -p <crate>`.
 
-```toml
-[patch."https://github.com/tomet-lang/tomet.git"]
-tomet-ast = { path = "../tomet/crates/tomet-syntax-ast" }
-```
+Never point them at a local checkout with `[patch]` in `.cargo/config.toml`. Cargo then writes the path into `Cargo.lock` and drops the `source` of the patched crate, which the Nix build cannot fetch.
 
 ## Language
 
