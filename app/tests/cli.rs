@@ -29,3 +29,16 @@ fn the_help_describes_it() {
     assert!(help.contains("desk"), "{help}");
     assert!(help.contains("--config"), "{help}");
 }
+
+#[test]
+fn reports_extension_metadata_as_json() {
+    let output = Command::new(env!("CARGO_BIN_EXE_sisho-desk"))
+        .arg("--sisho-extension-info")
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\"word\": \"desk\""), "{stdout}");
+    assert!(stdout.contains("\"tui\": true"), "{stdout}");
+}
