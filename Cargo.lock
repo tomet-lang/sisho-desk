@@ -505,6 +505,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "jobserver-gate"
+version = "0.1.0"
+source = "git+https://github.com/tomet-lang/jobserver-gate.git#e848d4832cb9a26fab39563c4e5f70131892487c"
+dependencies = [
+ "jobserver",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -973,7 +981,7 @@ dependencies = [
 name = "sisho-sdk"
 version = "0.1.0"
 dependencies = [
- "jobserver",
+ "jobserver-gate",
  "serde",
  "serde_json",
 ]
