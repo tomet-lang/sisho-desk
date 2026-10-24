@@ -25,6 +25,14 @@ flake-parts.lib.mkFlake { inherit inputs; } {
       packages = rec {
         default = sisho-desk;
         sisho-desk = pkgs.callPackage ./pkgs/sisho-desk.nix { inherit craneLib; };
+
+        # What CI builds and sends to Cachix (.github/workflows/nix-ci.yml).
+        ci = pkgs.linkFarm "ci" [
+          {
+            name = "sisho-desk";
+            path = sisho-desk;
+          }
+        ];
       };
 
       devShells.default = pkgs.callPackage ./dev.nix {
