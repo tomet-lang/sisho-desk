@@ -19,6 +19,7 @@ flake-parts.lib.mkFlake { inherit inputs; } {
       craneLib = inputs.crane.mkLib pkgs;
       tometPkgs = inputs.tomet.packages.${system};
       twritPkgs = inputs.twrit.packages.${system};
+      catastoPkgs = inputs.catasto.packages.${system};
     in
     {
       packages = rec {
@@ -31,6 +32,7 @@ flake-parts.lib.mkFlake { inherit inputs; } {
         fenix = inputs.fenix.packages.${system};
         inherit (tometPkgs) tomet;
         inherit (twritPkgs) twrit;
+        inherit (catastoPkgs) catasto;
       };
 
       treefmt = import ./formatter.nix {

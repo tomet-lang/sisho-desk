@@ -20,3 +20,4 @@ docs-check:
     tomet format --check .
     tomet export --check .
     twrit check .
+    catasto check .

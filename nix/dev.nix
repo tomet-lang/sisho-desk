@@ -4,6 +4,7 @@
   fenix,
   tomet,
   twrit,
+  catasto,
   ...
 }:
 let
@@ -22,6 +23,7 @@ mkShell {
   buildInputs = with pkgs; [
     tomet
     twrit
+    catasto
     just
     tmux
 
