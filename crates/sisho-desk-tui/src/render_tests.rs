@@ -158,3 +158,45 @@ fn the_loading_screen_says_what_it_is_doing() {
     });
     assert!(screen.contains("Scanning workspace..."), "{screen}");
 }
+
+#[test]
+fn the_explorer_lists_ctmt_files_with_icon_and_preview() {
+    let vault = Vault::new("ctmt_render");
+    vault.write("catasto.ctmt", "::upstreams{\n  foo: { git: \"...\" }\n}\n");
+    vault.write("notes/alpha.tmt", "@kind(note)\n\n=[ Alpha ]\n");
+
+    let mut app = app_on(&vault);
+    let screen = draw_tab(&mut app, ActiveTab::Explorer, 120, 40);
+
+    assert!(screen.contains("catasto.ctmt"), "{screen}");
+    assert!(
+        screen.contains("📦"),
+        "expected ctmt icon in screen:\n{screen}"
+    );
+    assert!(
+        screen.contains("🔷"),
+        "expected tmt icon in screen:\n{screen}"
+    );
+    assert!(
+        screen.contains(".ctmt"),
+        "expected .ctmt in footer summary:\n{screen}"
+    );
+
+    // Line number separator in preview
+    assert!(
+        screen.contains("│"),
+        "expected line number separator in preview:\n{screen}"
+    );
+}
+
+#[test]
+fn help_modal_renders_over_screen() {
+    let vault = Vault::with_documents("help_test");
+    let mut app = app_on(&vault);
+    app.show_help = true;
+    let screen = draw_tab(&mut app, ActiveTab::Explorer, 120, 40);
+
+    assert!(screen.contains("Keybindings & Help"), "{screen}");
+    assert!(screen.contains("Navigation"), "{screen}");
+    assert!(screen.contains("Explorer"), "{screen}");
+}

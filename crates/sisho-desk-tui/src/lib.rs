@@ -212,6 +212,20 @@ fn run_app<B: ratatui::backend::Backend>(
                         continue;
                     }
 
+                    // If help modal is open
+                    if app.show_help {
+                        match key.code {
+                            KeyCode::Esc
+                            | KeyCode::Char('?')
+                            | KeyCode::Enter
+                            | KeyCode::Char('q') => {
+                                app.show_help = false;
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
                     // If editing in TUI inline editor
                     if app.inline_editor.is_some() {
                         if key.modifiers.contains(KeyModifiers::CONTROL)
@@ -382,6 +396,9 @@ fn run_app<B: ratatui::backend::Backend>(
 
                     // Global Navigation & Commands
                     match key.code {
+                        KeyCode::Char('?') => {
+                            app.show_help = true;
+                        }
                         KeyCode::Char('q') => {
                             app.should_quit = true;
                         }

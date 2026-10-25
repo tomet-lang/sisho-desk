@@ -36,6 +36,7 @@ pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
             let node = &app.tree_nodes[real_idx];
             let indent = "  ".repeat(node.depth);
 
+            let ext = node.path.extension().and_then(|e| e.to_str()).unwrap_or("");
             let line_spans = if node.is_dir {
                 let icon = if node.expanded {
                     "[-] 📁 "
@@ -52,7 +53,19 @@ pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
                             .add_modifier(Modifier::BOLD),
                     ),
                 ]
-            } else if node.migration_item.is_some() {
+            } else if ext.eq_ignore_ascii_case("ctmt") {
+                vec![
+                    Span::raw(indent),
+                    Span::styled("📦 ", Style::default().fg(Color::Yellow)),
+                    Span::styled(&node.name, Style::default().fg(Color::Yellow)),
+                ]
+            } else if ext.eq_ignore_ascii_case("tmt") || ext.eq_ignore_ascii_case("tm") {
+                vec![
+                    Span::raw(indent),
+                    Span::styled("🔷 ", Style::default().fg(Color::Cyan)),
+                    Span::styled(&node.name, Style::default().fg(Color::White)),
+                ]
+            } else if node.migration_item.is_some() || ext.eq_ignore_ascii_case("md") {
                 let converted = app
                     .migration_items
                     .iter()
@@ -61,8 +74,8 @@ pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
                 let status = if converted { " (DONE)" } else { "" };
                 vec![
                     Span::raw(indent),
-                    Span::styled("📝 ", Style::default()),
-                    Span::raw(&node.name),
+                    Span::styled("📝 ", Style::default().fg(Color::Green)),
+                    Span::styled(&node.name, Style::default().fg(Color::White)),
                     Span::styled(status, Style::default().fg(Color::DarkGray)),
                 ]
             } else {
@@ -109,24 +122,32 @@ pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
 
     // Preview Pane
     let mut preview_lines = Vec::new();
-
-    let title = if let Some(editor) = &app.inline_editor {
-        format!(
-            " EDITING: {} {} (Ctrl+S: Save, Esc: Exit) ",
-            editor.file_path.display(),
-            if editor.is_dirty { "[*MODIFIED*]" } else { "" }
-        )
-    } else {
-        " File Content Preview (Press [e] to Edit, [E] Open External $EDITOR) ".to_string()
-    };
+    let mut title =
+        " File Content Preview (Press [e] to Edit, [E] Open External $EDITOR) ".to_string();
 
     if let Some(editor) = &app.inline_editor {
+        let dirty = if editor.is_dirty { " [*MODIFIED*]" } else { "" };
+        let file_name = editor
+            .file_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("file");
+        title = format!(
+            " EDITING: {file_name} [Ln {}, Col {}]{dirty} (Ctrl+S: Save, Esc: Exit) ",
+            editor.cursor_row + 1,
+            editor.cursor_col + 1
+        );
+
         let full_src = editor.lines.join("\n");
         let highlighted = highlight_source_file(&editor.file_path, &full_src);
+        let total_lines = highlighted.len();
+        let num_width = total_lines.to_string().len().max(2);
 
         for (row_idx, line) in highlighted.into_iter().enumerate() {
+            let line_num_span = super::line_number_span(row_idx, num_width);
+
             if row_idx == editor.cursor_row {
-                let mut cursor_line_spans = Vec::new();
+                let mut cursor_line_spans = vec![line_num_span];
                 let mut char_count = 0;
                 let mut cursor_rendered = false;
 
@@ -189,31 +210,58 @@ pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
                 }
                 preview_lines.push(Line::from(cursor_line_spans));
             } else {
-                preview_lines.push(line);
+                let mut spans = vec![line_num_span];
+                spans.extend(line.spans);
+                preview_lines.push(Line::from(spans));
             }
         }
     } else if let Some(&real_idx) = vis_indices.get(app.tree_index) {
         if let Some(node) = app.tree_nodes.get(real_idx) {
             if node.is_dir {
+                title = format!(" Directory: {}/ ", node.name);
+                preview_lines.push(Line::from(""));
                 preview_lines.push(Line::from(Span::styled(
-                    format!("--- DIRECTORY ({}) ---", node.path.display()),
+                    format!("  📁 Directory: {}", node.path.display()),
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
                 )));
-                preview_lines.push(Line::from("Directory contents visible in workspace tree."));
-                preview_lines.push(Line::from("Press [Enter] / [Space] to expand or collapse."));
+                preview_lines.push(Line::from(""));
+                preview_lines.push(Line::from(Span::styled(
+                    "  Press [Enter] or [Space] to expand/collapse directory in the tree.",
+                    Style::default().fg(Color::DarkGray),
+                )));
             } else {
-                preview_lines.push(Line::from(Span::styled(
-                    format!("--- FILE PREVIEW ({}) ---", node.path.display()),
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )));
-                if let Ok(src) = std::fs::read_to_string(&node.path) {
-                    preview_lines.extend(highlight_source_file(&node.path, &src));
-                } else {
-                    preview_lines.push(Line::from("(Binary or unreadable file)"));
+                let file_size_str = std::fs::metadata(&node.path)
+                    .map(|m| format_file_size(m.len()))
+                    .unwrap_or_else(|_| "0 B".to_string());
+
+                match std::fs::read_to_string(&node.path) {
+                    Ok(src) => {
+                        let highlighted = highlight_source_file(&node.path, &src);
+                        let total_lines = highlighted.len();
+                        let num_width = total_lines.to_string().len().max(2);
+
+                        title = format!(
+                            " Preview: {} ({total_lines} lines, {file_size_str}) ",
+                            node.name
+                        );
+
+                        for (row_idx, line) in highlighted.into_iter().enumerate() {
+                            let line_num_span = super::line_number_span(row_idx, num_width);
+                            let mut spans = vec![line_num_span];
+                            spans.extend(line.spans);
+                            preview_lines.push(Line::from(spans));
+                        }
+                    }
+                    Err(_) => {
+                        title = format!(" Preview: {} ({file_size_str}) ", node.name);
+                        preview_lines.push(Line::from(""));
+                        preview_lines.push(Line::from(Span::styled(
+                            "  (Binary or unreadable file)",
+                            Style::default().fg(Color::DarkGray),
+                        )));
+                    }
                 }
             }
         }
@@ -235,24 +283,89 @@ pub(super) fn render_explorer_view(f: &mut Frame, app: &mut App, area: Rect) {
     f.render_widget(preview, chunks[1]);
 }
 
-pub(super) fn explorer_controls_info(app: &App) -> String {
-    if app.is_filtering_tree {
-        format!(
-            "SEARCH FILTER: [ {} | ] (Type to search, [Enter] Apply, [Esc] Clear filter)",
-            app.tree_filter_input
-        )
-    } else if app.inline_editor.is_some() {
-        "[Type] Edit Text | [Arrows] Move Cursor | [Enter] Newline | [Backspace/Del] Delete | [Ctrl+S] Save | [Esc] Exit Edit"
-            .to_string()
-    } else if !app.tree_filter_input.is_empty() {
-        format!(
-            "Filtered: \"{}\" ({}/{} items) | [/] Edit Filter | [Esc] Clear Filter | [e] Edit | [E] $EDITOR",
-            app.tree_filter_input,
-            app.visible_tree_indices().len(),
-            app.tree_nodes.len()
-        )
+fn format_file_size(bytes: u64) -> String {
+    if bytes < 1024 {
+        format!("{bytes} B")
+    } else if bytes < 1024 * 1024 {
+        format!("{:.1} KB", bytes as f64 / 1024.0)
     } else {
-        "[Enter/Space] Expand/Collapse | [/] Filter | [e] Edit in TUI | [E] Open External $EDITOR | [q] Quit"
-            .to_string()
+        format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
+    }
+}
+
+pub(super) fn explorer_controls_info(app: &App) -> Line<'static> {
+    if app.is_filtering_tree {
+        Line::from(vec![
+            Span::styled(
+                " SEARCH FILTER: ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("\"{}\" ", app.tree_filter_input),
+                Style::default().fg(Color::Cyan),
+            ),
+            super::key("[Enter] "),
+            Span::raw("Apply  "),
+            super::key("[Esc] "),
+            Span::raw("Clear & Exit"),
+        ])
+    } else if app.inline_editor.is_some() {
+        Line::from(vec![
+            super::key("[Ctrl+S] "),
+            Span::raw("Save  "),
+            super::key("[Esc] "),
+            Span::raw("Exit Edit  "),
+            super::key("[Arrows] "),
+            Span::raw("Navigate  "),
+            super::key("[Enter] "),
+            Span::raw("Newline"),
+        ])
+    } else if app.focused_pane == FocusedPane::Preview {
+        Line::from(vec![
+            super::key("[j/k / ↑/↓] "),
+            Span::raw("Scroll  "),
+            super::key("[e] "),
+            Span::raw("Edit  "),
+            super::key("[E] "),
+            Span::raw("$EDITOR  "),
+            super::key("[Esc] "),
+            Span::raw("Back to Tree  "),
+            super::key("[?] "),
+            Span::raw("Help"),
+        ])
+    } else if !app.tree_filter_input.is_empty() {
+        Line::from(vec![
+            Span::styled(
+                format!(" Filter: \"{}\"  ", app.tree_filter_input),
+                Style::default().fg(Color::Cyan),
+            ),
+            super::key("[/] "),
+            Span::raw("Edit Filter  "),
+            super::key("[Esc] "),
+            Span::raw("Clear Filter  "),
+            super::key("[e] "),
+            Span::raw("Edit  "),
+            super::key("[?] "),
+            Span::raw("Help"),
+        ])
+    } else {
+        Line::from(vec![
+            super::key("[j/k] "),
+            Span::raw("Move  "),
+            super::key("[Enter/Space] "),
+            Span::raw("Toggle  "),
+            super::key("[e] "),
+            Span::raw("Edit  "),
+            super::key("[E] "),
+            Span::raw("$EDITOR  "),
+            super::key("[/] "),
+            Span::raw("Filter  "),
+            super::key("[Tab] "),
+            Span::raw("Next tab  "),
+            super::key("[?] "),
+            Span::raw("Help"),
+        ])
     }
 }

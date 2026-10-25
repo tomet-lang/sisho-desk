@@ -12,7 +12,9 @@ use tree_sitter::StreamingIterator;
 
 pub(super) fn highlight_source_file(path: &Path, src: &str) -> Vec<Line<'static>> {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-    let is_tm = ext.eq_ignore_ascii_case("tm") || ext.eq_ignore_ascii_case("tmt");
+    let is_tm = ext.eq_ignore_ascii_case("tm")
+        || ext.eq_ignore_ascii_case("tmt")
+        || ext.eq_ignore_ascii_case("ctmt");
 
     if is_tm {
         highlight_tomet_tree_sitter(src)

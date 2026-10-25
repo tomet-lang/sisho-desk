@@ -51,6 +51,8 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
     if let Some(confirm) = &app.pending_confirm {
         render_confirm_modal(f, confirm, f.area());
+    } else if app.show_help {
+        render_help_modal(f, f.area());
     }
 }
 
@@ -150,15 +152,33 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(tabs, area);
 }
 
+/// A highlighted key hint such as `[e] ` in the controls bar.
+pub(super) fn key(label: &'static str) -> Span<'static> {
+    Span::styled(
+        label,
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+    )
+}
+
+/// The dimmed gutter for a zero-based line index, padded to `width` digits.
+pub(super) fn line_number_span(row_idx: usize, width: usize) -> Span<'static> {
+    Span::styled(
+        format!("{:>width$} │ ", row_idx + 1),
+        Style::default().fg(Color::DarkGray),
+    )
+}
+
 fn render_controls(f: &mut Frame, app: &App, area: Rect) {
-    let info = match app.active_tab {
+    let line = match app.active_tab {
         ActiveTab::Explorer => explorer::explorer_controls_info(app),
-        ActiveTab::Migration => migration::migration_controls_info(app),
-        ActiveTab::BatchMeta => batch_meta::batch_meta_controls_info(app),
-        ActiveTab::StructuralGrep => structural::structural_controls_info(app),
+        ActiveTab::Migration => Line::from(migration::migration_controls_info(app)),
+        ActiveTab::BatchMeta => Line::from(batch_meta::batch_meta_controls_info(app)),
+        ActiveTab::StructuralGrep => Line::from(structural::structural_controls_info(app)),
     };
 
-    let p = Paragraph::new(info).block(
+    let p = Paragraph::new(line).block(
         Block::default()
             .borders(Borders::ALL)
             .title(" Quick Actions & Controls "),
@@ -167,11 +187,109 @@ fn render_controls(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_footer(f: &mut Frame, app: &App, area: Rect) {
-    let p = Paragraph::new(Span::styled(
-        &app.status_message,
-        Style::default().fg(Color::Yellow),
-    ));
+    let summary = app.workspace_summary();
+    let total_w = area.width as usize;
+    let left_len = app.status_message.chars().count() + 1;
+    let right_len = summary.chars().count() + 1;
+    let spaces = total_w.saturating_sub(left_len + right_len);
+    let pad = " ".repeat(spaces);
+
+    let line = Line::from(vec![
+        Span::styled(
+            format!(" {}", app.status_message),
+            Style::default().fg(Color::Yellow),
+        ),
+        Span::raw(pad),
+        Span::styled(format!("{summary} "), Style::default().fg(Color::DarkGray)),
+    ]);
+    let p = Paragraph::new(line);
     f.render_widget(p, area);
+}
+
+fn render_help_modal(f: &mut Frame, area: Rect) {
+    let width = 66.min(area.width.saturating_sub(4));
+    let height = 22.min(area.height.saturating_sub(2));
+
+    let popup_area = Rect {
+        x: area.x + (area.width.saturating_sub(width)) / 2,
+        y: area.y + (area.height.saturating_sub(height)) / 2,
+        width,
+        height,
+    };
+
+    f.render_widget(Clear, popup_area);
+
+    let block = Block::default()
+        .title(" Keybindings & Help (?, Esc or q to close) ")
+        .borders(Borders::ALL)
+        .border_style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        );
+
+    let key_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
+    let sec_style = Style::default()
+        .fg(Color::Cyan)
+        .add_modifier(Modifier::BOLD);
+
+    let text = vec![
+        Line::from(Span::styled(" [Navigation]", sec_style)),
+        Line::from(vec![
+            Span::styled("  1-4         ", key_style),
+            Span::raw("Switch tabs (1: Explorer, 2: Migrate, 3: Meta, 4: Grep)"),
+        ]),
+        Line::from(vec![
+            Span::styled("  Tab / S-Tab ", key_style),
+            Span::raw("Next / previous tab"),
+        ]),
+        Line::from(vec![
+            Span::styled("  q / Ctrl+C  ", key_style),
+            Span::raw("Quit Sisho Desk"),
+        ]),
+        Line::from(vec![
+            Span::styled("  ?           ", key_style),
+            Span::raw("Toggle this help popup"),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(" [Explorer]", sec_style)),
+        Line::from(vec![
+            Span::styled("  j / k (↑/↓) ", key_style),
+            Span::raw("Navigate tree / scroll preview"),
+        ]),
+        Line::from(vec![
+            Span::styled("  Enter/Space ", key_style),
+            Span::raw("Expand or collapse directory"),
+        ]),
+        Line::from(vec![
+            Span::styled("  e / E       ", key_style),
+            Span::raw("In-place edit (TUI) / Open in $EDITOR"),
+        ]),
+        Line::from(vec![
+            Span::styled("  /           ", key_style),
+            Span::raw("Filter file tree by name or path (Esc clears)"),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(" [Editing & Modal]", sec_style)),
+        Line::from(vec![
+            Span::styled("  Ctrl+S      ", key_style),
+            Span::raw("Save changes in in-place editor"),
+        ]),
+        Line::from(vec![
+            Span::styled("  Esc         ", key_style),
+            Span::raw("Exit editor / clear filter / cancel action"),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            "  Press [?], [Esc], or [Enter] to return.",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ];
+
+    let p = Paragraph::new(text).block(block);
+    f.render_widget(p, popup_area);
 }
 
 fn render_confirm_modal(f: &mut Frame, confirm: &PendingConfirm, area: Rect) {

@@ -105,6 +105,9 @@ pub struct App {
     // Confirmation Modal State
     pub pending_confirm: Option<PendingConfirm>,
 
+    // Help Modal State
+    pub show_help: bool,
+
     // Printer Formatting Config
     pub printer_config_path: Option<PathBuf>,
     pub printer_config: tomet_config::PrinterConfig,
@@ -178,6 +181,7 @@ impl App {
 
             inline_editor: None,
             pending_confirm: None,
+            show_help: false,
             printer_config_path: resolved_config_path,
             printer_config,
             config_root,
@@ -261,6 +265,41 @@ impl App {
             ActiveTab::BatchMeta => self.batch_meta_status_message(),
             ActiveTab::StructuralGrep => self.structural_status_message(),
         };
+    }
+
+    pub fn workspace_summary(&self) -> String {
+        let mut tmt_count = 0;
+        let mut ctmt_count = 0;
+        let mut md_count = 0;
+
+        for node in &self.tree_nodes {
+            if node.is_dir {
+                continue;
+            }
+            let ext = node.path.extension().and_then(|e| e.to_str()).unwrap_or("");
+            if ext.eq_ignore_ascii_case("ctmt") {
+                ctmt_count += 1;
+            } else if ext.eq_ignore_ascii_case("tmt") || ext.eq_ignore_ascii_case("tm") {
+                tmt_count += 1;
+            } else if ext.eq_ignore_ascii_case("md") || ext.eq_ignore_ascii_case("markdown") {
+                md_count += 1;
+            }
+        }
+
+        let mut parts = Vec::new();
+        for (count, label) in [
+            (tmt_count, ".tmt"),
+            (ctmt_count, ".ctmt"),
+            (md_count, ".md"),
+        ] {
+            if count > 0 {
+                parts.push(format!("{count} {label}"));
+            }
+        }
+        if parts.is_empty() {
+            return "0 documents".to_string();
+        }
+        parts.join(" · ")
     }
 
     pub fn next_tab(&mut self) {
@@ -406,7 +445,7 @@ mod tests {
         let config_file = config_dir.join("default.config.tmt");
         std::fs::write(
             &config_file,
-            r#"@settings{
+            r#"::settings{
   ignore: {
     files: list("00-09 System/01 Apps/obsidian")
   }
