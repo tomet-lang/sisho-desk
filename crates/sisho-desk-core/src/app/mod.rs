@@ -442,13 +442,11 @@ mod tests {
         std::fs::create_dir_all(&ignored_dir).unwrap();
         std::fs::create_dir_all(&normal_dir).unwrap();
 
-        let config_file = config_dir.join("default.config.tmt");
+        let config_file = config_dir.join("vault.config.tmt");
         std::fs::write(
             &config_file,
-            r#"::settings{
-  ignore: {
-    files: list("00-09 System/01 Apps/obsidian")
-  }
+            r#"::workspace{
+  ignore: list("00-09 System/01 Apps/obsidian")
 }
 "#,
         )

@@ -1,4 +1,4 @@
-//! Batch Meta tab: bulk `@meta` key/value updates across selected
+//! Batch Meta tab: bulk `::meta` key/value updates across selected
 //! `.tmt` files.
 
 use std::collections::BTreeMap;
@@ -167,5 +167,48 @@ impl App {
             self.meta_entries.len(),
             selected_count
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_batch_meta_writes_modern_meta_declaration() {
+        let dir_path = std::env::temp_dir().join(format!("tm_test_meta_{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&dir_path).unwrap();
+        let file_path = dir_path.join("note.tmt");
+        fs::write(&file_path, "::kind(note)\n\n=[ Note ]\n\nContent.\n").unwrap();
+
+        let mut entry = MetaFileEntry::from_path(file_path.clone());
+        entry.ensure_loaded();
+
+        let mut files = vec![MetaFile {
+            path: entry.path.clone(),
+            original_src: entry.original_src.clone(),
+            modified_src: entry.modified_src.clone(),
+            metadata: entry.metadata.clone(),
+        }];
+
+        BatchMetaEngine::update_meta_key(&mut files, "meta", "author", "Alice");
+
+        assert!(
+            files[0].modified_src.contains("::meta"),
+            "must contain ::meta: {}",
+            files[0].modified_src
+        );
+        assert!(
+            files[0].modified_src.contains("author"),
+            "must contain author key: {}",
+            files[0].modified_src
+        );
+        assert!(
+            !files[0].modified_src.contains("@meta"),
+            "must not contain @meta: {}",
+            files[0].modified_src
+        );
+
+        let _ = fs::remove_dir_all(&dir_path);
     }
 }

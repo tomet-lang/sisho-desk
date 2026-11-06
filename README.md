@@ -11,7 +11,7 @@ Interactive terminal desk for the Tomet ecosystem: look around the workspace, mi
 It has four tabs:
 1. **Explorer**: browse the workspace file tree, view file contents, and edit files in-place or in `$EDITOR`.
 2. **Migration**: convert Markdown (`.md`) files to Tomet (`.tmt`) side-by-side with preview.
-3. **BatchMeta**: update `@meta` fields across multiple documents in batch.
+3. **BatchMeta**: update `::meta` fields across multiple documents in batch.
 4. **StructuralGrep**: search and replace syntax elements and attributes structurally using `tomet-transform`.
 
 The full CLI specification is at [tmtroot/spec/cli/desk.tmt](tmtroot/spec/cli/desk.tmt).

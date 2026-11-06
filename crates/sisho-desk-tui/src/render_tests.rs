@@ -32,8 +32,8 @@ impl Vault {
 
     fn with_documents(name: &str) -> Self {
         let vault = Self::new(name);
-        vault.write("default.config.tmt", "@kind(config)\n");
-        vault.write("notes/alpha.tmt", "@kind(note)\n\n=[ Alpha ]\n\nFirst.\n");
+        vault.write("vault.config.tmt", "::kind(config)\n");
+        vault.write("notes/alpha.tmt", "::kind(note)\n\n=[ Alpha ]\n\nFirst.\n");
         vault.write("legacy/old.md", "# Legacy\n\nAn old page.\n");
         vault
     }
@@ -115,7 +115,7 @@ fn the_batch_tab_lists_the_tomet_documents() {
     let screen = draw_tab(&mut app, ActiveTab::BatchMeta, 120, 40);
 
     assert!(screen.contains("alpha.tmt"), "{screen}");
-    assert!(screen.contains("default.config.tmt"), "{screen}");
+    assert!(screen.contains("vault.config.tmt"), "{screen}");
 }
 
 #[test]
@@ -163,7 +163,7 @@ fn the_loading_screen_says_what_it_is_doing() {
 fn the_explorer_lists_ctmt_files_with_icon_and_preview() {
     let vault = Vault::new("ctmt_render");
     vault.write("catasto.ctmt", "::upstreams{\n  foo: { git: \"...\" }\n}\n");
-    vault.write("notes/alpha.tmt", "@kind(note)\n\n=[ Alpha ]\n");
+    vault.write("notes/alpha.tmt", "::kind(note)\n\n=[ Alpha ]\n");
 
     let mut app = app_on(&vault);
     let screen = draw_tab(&mut app, ActiveTab::Explorer, 120, 40);

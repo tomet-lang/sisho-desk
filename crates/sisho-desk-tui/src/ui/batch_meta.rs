@@ -85,7 +85,7 @@ pub(super) fn render_batch_meta_view(f: &mut Frame, app: &mut App, area: Rect) {
         )));
         if entry.metadata.is_empty() {
             lines.push(Line::from(Span::styled(
-                "(No @meta / @config fields found)",
+                "(No ::meta / ::config fields found)",
                 Style::default().fg(Color::DarkGray),
             )));
         } else {
@@ -142,7 +142,7 @@ pub(super) fn batch_meta_controls_info(app: &App) -> String {
         "VAL: "
     };
     format!(
-        "{key_style}{} | {val_style}{}  ([k]ey/[v]al edit mode, [e] Apply @meta update)",
+        "{key_style}{} | {val_style}{}  ([k]ey/[v]al edit mode, [e] Apply ::meta update)",
         app.meta_key_input, app.meta_val_input
     )
 }

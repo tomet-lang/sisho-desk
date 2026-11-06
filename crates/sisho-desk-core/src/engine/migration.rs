@@ -101,11 +101,52 @@ mod tests {
         assert_eq!(items.len(), 1);
         items[0].ensure_loaded();
         assert!(items[0].tomet_src.contains("=[Migration Test]"));
+        assert!(!items[0].tomet_src.contains("@meta"));
+        assert!(!items[0].tomet_src.contains("@id"));
 
         items[0].selected = true;
         let count = MigrationEngine::execute(&mut items, false).unwrap();
         assert_eq!(count, 1);
         assert!(dir_path.join("doc.tmt").exists());
+        let _ = fs::remove_dir_all(&dir_path);
+    }
+
+    #[test]
+    fn test_migration_with_id_config_outputs_modern_id_declaration() {
+        let dir_path = std::env::temp_dir().join(format!("tm_test_{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&dir_path).unwrap();
+        let md_path = dir_path.join("doc.md");
+        fs::write(&md_path, "# Note with ID\n\nContent.\n").unwrap();
+
+        let cfg = tomet_config::load_config_from_str(
+            r#"::fields{ id: { type: nanoid, prefix: "doc-" } }"#,
+        )
+        .unwrap();
+        let index = WorkspaceIndex::build(&dir_path, &cfg, &dir_path);
+        let mut items: Vec<MigrationItem> = index
+            .migration_candidates()
+            .into_iter()
+            .map(MigrationItem::from_candidate)
+            .collect();
+        assert_eq!(items.len(), 1);
+        items[0].ensure_loaded_with_config(&cfg);
+
+        assert!(
+            items[0].tomet_src.contains("::id("),
+            "tomet_src must contain ::id: {}",
+            items[0].tomet_src
+        );
+        assert!(
+            !items[0].tomet_src.contains("@id"),
+            "tomet_src must not contain @id: {}",
+            items[0].tomet_src
+        );
+        assert!(
+            !items[0].tomet_src.contains("@meta"),
+            "tomet_src must not contain @meta: {}",
+            items[0].tomet_src
+        );
+
         let _ = fs::remove_dir_all(&dir_path);
     }
 }

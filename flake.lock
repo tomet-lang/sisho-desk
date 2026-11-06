@@ -456,11 +456,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1792923917,
-        "narHash": "sha256-hHCUYQiACmz5D25ysowj5k2Z2D2+lfXdqKHxfmr4XhI=",
+        "lastModified": 1793858169,
+        "narHash": "sha256-x+S7j4oA7I3kpXHd8l518Uw8kIsVatTg0j7kZ3Y9CqI=",
         "owner": "tomet-lang",
         "repo": "tomet",
-        "rev": "35e1ba52056f75c89dbe91af1d0c41a22e4fd07a",
+        "rev": "f491eea535e0d08a4d545b6bd21a4808b295c96a",
         "type": "github"
       },
       "original": {

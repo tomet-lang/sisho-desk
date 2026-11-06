@@ -1,6 +1,4 @@
-::meta{
-  id: cli.desk
-}
+::id(cli.desk)
 
 `sisho-desk [PATH]`: a desk that runs in the terminal. Look around the workspace, migrate Markdown, fix metadata in batches, and search and replace by structure. It is also reached as `sisho desk`.
 
@@ -24,7 +22,7 @@ Four tabs on top, a list on the left and a preview on the right in the middle, a
 |[ Tab ][ Name           ][ The list shows                  ][ The right side shows ]
 |[ 1   ][ Explorer       ][ the workspace's tree of files   ][ the file's contents ]
 |[ 2   ][ Migration      ][ the tree of Markdown to migrate ][ the Markdown beside what it converts to ]
-|[ 3   ][ BatchMeta      ][ the `.tmt` documents            ][ the `@meta` fields and the diff of the source once rewritten ]
+|[ 3   ][ BatchMeta      ][ the `.tmt` documents            ][ the `::meta` fields and the diff of the source once rewritten ]
 |[ 4   ][ StructuralGrep ][ the documents the search hit    ][ the diff of the replacement ]
 
 =[ Explorer ]
@@ -45,7 +43,7 @@ Converts Markdown (`.md`) to `.tmt`.
 
 =[ BatchMeta ]
 
-Rewrites one field of `@meta` in the documents selected, all at once.
+Rewrites one field of `::meta` in the documents selected, all at once.
 
 - `k` enters the field name and `v` the value. The field name starts as `author`.
 - Running it, with a field given and documents selected, asks `Update meta field '<name>' in <n> file(s)?` and then saves. With an empty name or no document selected, it says so and does nothing.
@@ -54,7 +52,7 @@ Rewrites one field of `@meta` in the documents selected, all at once.
 
 Searches and replaces by syntax, not by string. The target is every `.tmt`.
 
-- There are three conditions: the name of an element (`t`), a key such as `@meta`'s (`k`), and a string contained in the value (`v`). `s` searches and lists the documents hit. `c` clears the conditions.
+- There are three conditions: the name of an element (`t`), a key such as `::meta`'s (`k`), and a string contained in the value (`v`). `s` searches and lists the documents hit. `c` clears the conditions.
 - Enter what to replace with (`r`) and run it. What happens depends on the conditions.
 @table
 |[ Conditions                 ][ Replacement ]
