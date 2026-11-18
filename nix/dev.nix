@@ -5,6 +5,7 @@
   tomet,
   twrit,
   catasto,
+  sisho,
   ...
 }:
 let
@@ -24,6 +25,7 @@ mkShell {
     tomet
     twrit
     catasto
+    sisho
     just
     tmux
 

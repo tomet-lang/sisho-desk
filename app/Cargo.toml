@@ -1,10 +1,10 @@
 [package]
-name = "sisho-desk"
+name              = "sisho-desk"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Interactive desk for the Tomet ecosystem."
-publish = false
+description       = "Interactive desk for the Tomet ecosystem."
+publish           = false
 
 [[bin]]
 name = "sisho-desk"
@@ -12,6 +12,6 @@ path = "src/main.rs"
 
 [dependencies]
 sisho-desk-tui = { workspace = true }
-sisho-sdk = { workspace = true }
-clap = { workspace = true }
-anyhow = { workspace = true }
+sisho-sdk      = { workspace = true }
+clap           = { workspace = true }
+anyhow         = { workspace = true }

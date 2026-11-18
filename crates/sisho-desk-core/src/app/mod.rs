@@ -445,9 +445,10 @@ mod tests {
         let config_file = config_dir.join("vault.config.tmt");
         std::fs::write(
             &config_file,
-            r#"::workspace{
-  ignore: list("00-09 System/01 Apps/obsidian")
-}
+            r#"::kind(config)
+::workspace(
+  ignore: ("00-09 System/01 Apps/obsidian")
+)
 "#,
         )
         .unwrap();

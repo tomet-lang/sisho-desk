@@ -41,9 +41,46 @@ impl MigrationItem {
         if self.markdown_src.is_empty()
             && let Ok(src) = fs::read_to_string(&self.source_path)
         {
-            let mut doc = tomet_markdown::from_markdown(&src);
-            tomet_printer::ensure_document_id_with_config(&mut doc, config);
-            self.tomet_src = document_to_tm_with_config(&doc, config);
+            let doc = tomet_markdown::from_markdown(&src);
+            let mut rendered = document_to_tm_with_config(&doc, config);
+            let has_id = doc.header.iter().any(|d| d.name.is_bare_named("id"));
+            if !has_id
+                && let Some(id_cfg) = config.meta.fields.get("id")
+                && let Some(kind) = id_cfg.field_type.as_deref()
+            {
+                let generated = match kind {
+                    "uuid" => {
+                        let nanos = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_nanos();
+                        Some(format!(
+                            "{:08x}-{:04x}-4{:03x}-8{:03x}-{:012x}",
+                            (nanos >> 96) as u32,
+                            (nanos >> 80) as u16,
+                            (nanos >> 64) as u16 & 0x0fff,
+                            (nanos >> 48) as u16 & 0x0fff,
+                            nanos as u64 & 0xffff_ffff_ffff
+                        ))
+                    }
+                    "nanoid" => {
+                        let nanos = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_nanos();
+                        let raw = format!("{nanos:032x}");
+                        let len = id_cfg.length.unwrap_or(8).min(raw.len());
+                        Some(raw[..len].to_string())
+                    }
+                    _ => None,
+                };
+                if let Some(body) = generated {
+                    let prefix = id_cfg.prefix.as_deref().unwrap_or_default();
+                    let full_id = format!("{prefix}{body}");
+                    rendered = format!("::id({full_id:?})\n{rendered}");
+                }
+            }
+            self.tomet_src = rendered;
             self.markdown_src = src;
         }
     }
@@ -119,7 +156,7 @@ mod tests {
         fs::write(&md_path, "# Note with ID\n\nContent.\n").unwrap();
 
         let cfg = tomet_config::load_config_from_str(
-            r#"::fields{ id: { type: nanoid, prefix: "doc-" } }"#,
+            r#"::field( id: ( type: nanoid, prefix: "doc-" ) )"#,
         )
         .unwrap();
         let index = WorkspaceIndex::build(&dir_path, &cfg, &dir_path);

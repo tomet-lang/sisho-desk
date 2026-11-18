@@ -20,6 +20,7 @@ flake-parts.lib.mkFlake { inherit inputs; } {
       tometPkgs = inputs.tomet.packages.${system};
       twritPkgs = inputs.twrit.packages.${system};
       catastoPkgs = inputs.catasto.packages.${system};
+      sishoPkgs = inputs.sisho.packages.${system};
     in
     {
       packages = rec {
@@ -41,6 +42,7 @@ flake-parts.lib.mkFlake { inherit inputs; } {
         inherit (tometPkgs) tomet;
         inherit (twritPkgs) twrit;
         inherit (catastoPkgs) catasto;
+        inherit (sishoPkgs) sisho;
       };
 
       treefmt = import ./formatter.nix {

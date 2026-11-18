@@ -11,13 +11,13 @@ does not relax the rule to fit the change it wanted to make.
 ==[ crate-layering ]
 
 @rule(crate-layering){
-  guard: { twrit: layers }
+  guard: (twrit: layers)
 
-  layers: {
-    2: list( "app" )
-    1: list( "crates/sisho-desk-tui" )
-    0: list( "crates/sisho-desk-core" )
-  }
+  layers: (
+    2: ("app")
+    1: ("crates/sisho-desk-tui")
+    0: ("crates/sisho-desk-core")
+  )
 }
 
 Every workspace member belongs to exactly one layer, and depends only on
@@ -30,12 +30,12 @@ the TUI presentation and terminal driver. Layer 2 is the CLI program.
 ==[ no-sisho-crates ]
 
 @rule(no-sisho-crates){
-  guard: { twrit: door }
+  guard: (twrit: door)
 
-  door: {
-    names: list( "sisho_run", "sisho_tools", "sisho_vault", "sisho_serve", "sisho_tui", "sisho_cli" )
-    allowed: list()
-  }
+  door: (
+    names:   ("sisho_run", "sisho_tools", "sisho_vault", "sisho_serve", "sisho_tui", "sisho_cli")
+    allowed: ()
+  )
 }
 
 `sisho-desk` depends on no `sisho-*` crate. The extension knows the contract,
@@ -44,7 +44,7 @@ not the orchestrator.
 ==[ tmtroot-output-not-edited ]
 
 @rule(tmtroot-output-not-edited){
-  guard: { runs: "just docs-check" }
+  guard: (runs: "just docs-check")
 }
 
 A file exported from @dir(tmtroot/) is generated. Do not hand-edit it. Edit
