@@ -11,7 +11,7 @@ name = "sisho-desk"
 path = "src/main.rs"
 
 [dependencies]
+anyhow         = { workspace = true }
+clap           = { workspace = true }
 sisho-desk-tui = { workspace = true }
 sisho-sdk      = { workspace = true }
-clap           = { workspace = true }
-anyhow         = { workspace = true }

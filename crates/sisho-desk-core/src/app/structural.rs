@@ -81,12 +81,7 @@ impl App {
                 Some(self.query_val_input.clone())
             },
         };
-        let diffs = StructuralEngine::search_with_config(
-            &self.dir_path,
-            &query,
-            &self.printer_config,
-            &self.config_root,
-        );
+        let diffs = StructuralEngine::search(&self.vault, &self.dir_path, &query);
         self.structural_matches = diffs.into_iter().map(StructuralMatch::from_diff).collect();
         self.structural_index = 0;
         self.status_message = format!("Found {} matching file(s).", self.structural_matches.len());
@@ -181,7 +176,7 @@ impl App {
                 })
                 .collect();
 
-            StructuralEngine::apply_action(&mut diffs, &act);
+            StructuralEngine::apply_action(&self.vault, &mut diffs, &act);
 
             match tomet_workspace::save_file_diffs(&mut diffs) {
                 Ok(count) => {

@@ -9,7 +9,7 @@
 //! `active_tab`.
 
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use super::engine::migration::MigrationItem;
 use tomet_indexer::workspace_scan::{FileTreeNode, WorkspaceIndex};
@@ -112,6 +112,7 @@ pub struct App {
     pub printer_config_path: Option<PathBuf>,
     pub printer_config: tomet_config::PrinterConfig,
     pub config_root: PathBuf,
+    vault: tomet_vault::Vault,
 
     // Workspace catalog: `index` holds filesystem-derived facts only
     // (which paths exist, what kind they are); `tree_nodes`/
@@ -140,6 +141,11 @@ impl App {
             )
         };
 
+        let vault = build_vault(
+            printer_config.clone(),
+            config_root.clone(),
+            resolved_config_path.as_deref(),
+        );
         let index = WorkspaceIndex::build(&dir_path, &printer_config, &config_root);
         let structural_matches = Vec::new();
 
@@ -185,6 +191,7 @@ impl App {
             printer_config_path: resolved_config_path,
             printer_config,
             config_root,
+            vault,
             index,
         };
 
@@ -414,6 +421,37 @@ impl App {
         self.sync_workspace_views();
         self.refresh_status();
     }
+}
+
+/// Builds a [`tomet_vault::Vault`] for `config`, reading any declared vocabularies relative to
+/// `config_file`'s directory (falling back to `root`).
+fn build_vault(
+    config: tomet_config::PrinterConfig,
+    root: PathBuf,
+    config_file: Option<&Path>,
+) -> tomet_vault::Vault {
+    let base = config_file.and_then(|p| p.parent()).unwrap_or(&root);
+    let loaded_sources: Vec<(String, String)> = config
+        .registry
+        .vocabularies
+        .iter()
+        .filter_map(|rel| {
+            let candidate = base.join(rel);
+            let path = if candidate.is_file() {
+                candidate
+            } else {
+                root.join(rel)
+            };
+            std::fs::read_to_string(&path)
+                .ok()
+                .map(|src| (rel.clone(), src))
+        })
+        .collect();
+    let refs: Vec<(&str, &str)> = loaded_sources
+        .iter()
+        .map(|(label, src)| (label.as_str(), src.as_str()))
+        .collect();
+    tomet_vault::Vault::from_sources(config, root, &refs)
 }
 
 #[cfg(test)]

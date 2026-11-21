@@ -131,6 +131,7 @@ impl App {
                 .collect();
 
             BatchMetaEngine::update_meta_key(
+                &self.vault,
                 &mut selected_files,
                 "meta",
                 &self.meta_key_input,
@@ -191,7 +192,12 @@ mod tests {
             metadata: entry.metadata.clone(),
         }];
 
-        BatchMetaEngine::update_meta_key(&mut files, "meta", "author", "Alice");
+        let vault = tomet_vault::Vault::from_sources(
+            tomet_config::PrinterConfig::default(),
+            &dir_path,
+            &[],
+        );
+        BatchMetaEngine::update_meta_key(&vault, &mut files, "meta", "author", "Alice");
 
         assert!(
             files[0].modified_src.contains("::meta"),
